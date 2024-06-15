@@ -7,5 +7,6 @@ namespace Ozzido\Container\Binding;
 enum Lifecycle
 {
     case Singleton;
+    case Scoped;
     case Transient;
 }

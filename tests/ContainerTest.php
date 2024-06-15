@@ -88,6 +88,24 @@ class ContainerTest extends TestCase
     }
 
     #[Test]
+    public function resetsScopedBindings(): void
+    {
+        $this->container->bind(FooInterface::class)->to(Foo::class)->asScoped();
+        $foo = $this->container->get(FooInterface::class);
+        $this->container->resetScoped();
+        $this->assertNotSame($foo, $this->container->get(FooInterface::class));
+    }
+
+    #[Test]
+    public function resetsScopedBindingsForSeparateContext(): void
+    {
+        $this->container->for(Bar::class)->bind(FooInterface::class)->to(Foo::class)->asScoped();
+        $foo = $this->container->get(Bar::class)->getFoo();
+        $this->container->resetScoped();
+        $this->assertNotSame($foo, $this->container->get(Bar::class)->getFoo());
+    }
+
+    #[Test]
     public function checksHas(): void
     {
         $this->assertTrue($this->container->has(Container::class));

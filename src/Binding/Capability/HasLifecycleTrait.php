@@ -19,6 +19,12 @@ trait HasLifecycleTrait
     }
 
     /** @inheritdoc */
+    public function asScoped(): static
+    {
+        return $this->as(Lifecycle::Scoped);
+    }
+
+    /** @inheritdoc */
     public function asTransient(): static
     {
         return $this->as(Lifecycle::Transient);
@@ -36,5 +42,12 @@ trait HasLifecycleTrait
     public function is(Lifecycle $lifecycle): bool
     {
         return $this->lifecycle === $lifecycle;
+    }
+
+    /** @inheritdoc */
+    public function reset(): void
+    {
+        $this->resolved = false;
+        $this->instance = null;
     }
 }

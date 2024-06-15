@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Ozzido\Container;
 
+use Ozzido\Container\Binding\Capability\HasLifecycleInterface;
 use Ozzido\Container\Binding\BindingInterface;
+use Ozzido\Container\Binding\Lifecycle;
 
 class BindingRegistry implements BindingRegistryInterface
 {
@@ -45,5 +47,15 @@ class BindingRegistry implements BindingRegistryInterface
     public function getBindings(): array
     {
         return $this->bindings;
+    }
+
+    /** @inheritdoc */
+    public function resetScoped(): void
+    {
+        foreach ($this->bindings as $binding) {
+            if ($binding instanceof HasLifecycleInterface && $binding->is(Lifecycle::Scoped)) {
+                $binding->reset();
+            }
+        }
     }
 }

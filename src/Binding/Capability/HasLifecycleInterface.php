@@ -14,6 +14,11 @@ interface HasLifecycleInterface
     public function asSingleton(): static;
 
     /**
+     * Defines the lifecycle of the binding as a scoped (singleton).
+     */
+    public function asScoped(): static;
+
+    /**
      * Defines the lifecycle of the binding as a transient.
      */
     public function asTransient(): static;
@@ -27,4 +32,9 @@ interface HasLifecycleInterface
      * Checks whether the binding matches the given lifecycle.
      */
     public function is(Lifecycle $lifecycle): bool;
+
+    /**
+     * Resets resolved instance.
+     */
+    public function reset(): void;
 }

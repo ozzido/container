@@ -89,6 +89,16 @@ class Container implements ContainerInterface
     }
 
     /** @inheritdoc */
+    public function resetScoped(): void
+    {
+        $this->bindings->resetScoped();
+
+        foreach ($this->contextualBindings as $bindings) {
+            $bindings->resetScoped();
+        }
+    }
+
+    /** @inheritdoc */
     public function has(string $type): bool
     {
         return $this->bindings->bound($type) || class_exists($type);

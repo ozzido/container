@@ -88,6 +88,14 @@ class ConcreteBindingTest extends TestCase
     }
 
     #[Test]
+    public function resolvesSameInstanceInScopedLifecycle(): void
+    {
+        $container = $this->createContainerMockForLifecycleTests(1);
+        $binding = (new ConcreteBinding(Foo::class))->asScoped();
+        $this->assertSame($binding->resolve($container), $binding->resolve($container));
+    }
+
+    #[Test]
     public function resolvesDifferentInstanceInTransientLifecycle(): void
     {
         $container = $this->createContainerMockForLifecycleTests(2);

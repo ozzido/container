@@ -49,4 +49,9 @@ interface BindingRegistryInterface
      * @return array<non-empty-string|class-string, BindingInterface>
      */
     public function getBindings(): array;
+
+    /**
+     * Resets resolved instances for all bindings in the registry that have a scoped lifecycle.
+     */
+    public function resetScoped(): void;
 }

@@ -8,6 +8,7 @@ use Ozzido\Container\Binding\ConcreteBinding;
 use Ozzido\Container\BindingRegistrar;
 use Ozzido\Container\BindingRegistry;
 use Ozzido\Container\BindingRegistryInterface;
+use Ozzido\Container\ContainerInterface;
 use Ozzido\Container\Test\Fixture\Foo;
 use Ozzido\Container\Test\Fixture\OtherFoo;
 use Ozzido\Container\Test\Fixture\Qux;
@@ -69,5 +70,23 @@ class BindingRegistryTest extends TestCase
         $this->bindings->addBinding(Foo::class, $expects[Foo::class]);
         $this->bindings->addBinding(OtherFoo::class, $expects[OtherFoo::class]);
         $this->assertSame($this->bindings->getBindings(), $expects);
+    }
+
+    #[Test]
+    public function resetsScopedBindings(): void
+    {
+        $container = $this->createMock(ContainerInterface::class);
+        $container
+            ->expects($this->exactly(2))
+            ->method('construct')
+            ->willReturnCallback(fn ($concrete) => new $concrete());
+
+        $binding = (new ConcreteBinding(Foo::class))->asScoped();
+        $this->bindings->addBinding(Foo::class, $binding);
+
+        $foo = $binding->resolve($container);
+        $this->assertSame($foo, $binding->resolve($container));
+        $this->bindings->resetScoped();
+        $this->assertNotSame($foo, $binding->resolve($container));
     }
 }
