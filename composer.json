@@ -1,0 +1,60 @@
+{
+    "name": "ozzido/container",
+    "type": "library",
+    "description": "Feature rich, dependency free, framework agnostic dependency injection container for php.",
+    "keywords": ["di", "dependency injection", "container", "dic", "ioc", "psr-11"],
+    "license": "MIT",
+    "require": {
+        "php": "^8.3",
+        "psr/container": "^2.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.1",
+        "phpstan/phpstan": "^1.10",
+        "squizlabs/php_codesniffer": "^3.9"
+    },
+    "provide": {
+        "psr/container-implementation": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ozzido\\Container\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Ozzido\\Container\\Test\\": "tests/"
+        },
+        "files": [
+            "tests/Fixture/function.php"
+        ]
+    },
+    "scripts": {
+        "cs": [
+            "php vendor/bin/phpcs"
+        ],
+        "cs-fix": [
+            "php vendor/bin/phpcbf"
+        ],
+        "test": [
+            "php vendor/bin/phpunit"
+        ],
+        "coverage-html": [
+            "php vendor/bin/phpunit --coverage-html .coverage"
+        ],
+        "coverage-clover": [
+            "php vendor/bin/phpunit --coverage-clover .coverage.xml"
+        ],
+        "analyse": [
+            "php vendor/bin/phpstan analyse"
+        ]
+    },
+    "scripts-descriptions": {
+        "cs": "Check for code style violations.",
+        "cs-fix": "Fix code style violations.",
+        "test": "Run unit tests without code coverage.",
+        "coverage-html": "Run unit tests with code coverage report in HTML format.",
+        "coverage-clover": "Run unit tests with code coverage report in Clover XML format.",
+        "analyse": "Run static analysis."
+    }
+}

@@ -1,0 +1,13 @@
+.DS_Store
+
+/.coverage/
+/.coverage.xml
+
+/vendor/
+/composer.phar
+/composer.lock
+
+/.phpunit.result.cache
+/.phpunit.cache
+
+/.phpcs-cache
