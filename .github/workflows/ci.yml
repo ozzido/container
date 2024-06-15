@@ -1,0 +1,34 @@
+name: CI
+on:
+  pull_request:
+    paths-ignore:
+      - 'README.md'
+      - '.gitignore'
+      - '.gitattributes'
+  push:
+    paths-ignore:
+      - 'README.md'
+      - '.gitignore'
+      - '.gitattributes'
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout.
+        uses: actions/checkout@v4
+      - name: Set up PHP.
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.3
+      - name: Set up dependencies with composer.
+        run: composer self-update && composer install && composer dump-autoload
+      - name: Run code style violations check.
+        run: composer run-script cs
+      - name: Run static analysis.
+        run: composer run-script analyse
+      - name: Run unit tests with code coverage.
+        run: composer run-script coverage-clover
+      - name: Upload code coverage reports to Coveralls.
+        uses: coverallsapp/github-action@v2
+        with:
+          files: ./.coverage.xml
