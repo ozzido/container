@@ -228,6 +228,14 @@ class Container implements ContainerInterface
         foreach ($parameters as $parameterName => [$parameter, $parameterType, $isVariadic]) {
             if (array_key_exists($parameterName, $overrides)) {
                 $dependency = $overrides[$parameterName];
+
+                if ($dependency instanceof Give) {
+                    try {
+                        $dependency = $dependency->resolve($this);
+                    } catch (NotFoundException $e) {
+                        $this->throwCannotResolveDependency($parameter, $e);
+                    }
+                }
             } elseif ($parameterType) {
                 $dependency = $this->resolveTypeDependency($parameter, $parameterType, $context);
             } else {

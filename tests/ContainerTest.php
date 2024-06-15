@@ -10,6 +10,7 @@ use Ozzido\Container\Exception\NotFoundException;
 use Ozzido\Container\BindingRegistrar;
 use Ozzido\Container\Container;
 use Ozzido\Container\ContainerInterface;
+use Ozzido\Container\Give;
 use Ozzido\Container\Test\Fixture\Foo;
 use Ozzido\Container\Test\Fixture\FooCircular;
 use Ozzido\Container\Test\Fixture\FooInterface;
@@ -192,6 +193,12 @@ class ContainerTest extends TestCase
     }
 
     #[Test]
+    public function callsWithDependencyResolvingUsingGive(): void
+    {
+        $this->assertInstanceOf(Foo::class, $this->container->call([new FooWithMethods(), 'withClassArgument'], ['foo' => new Give(Foo::class)]));
+    }
+
+    #[Test]
     public function callsWithAllowNullArgument(): void
     {
         $this->assertNull($this->container->call([new FooWithMethods(), 'withAllowNullArgument']));
@@ -240,6 +247,15 @@ class ContainerTest extends TestCase
         $this->expectException(NotFoundException::class);
         $this->expectExceptionMessage('Cannot resolve dependency "$nonExistent" for "Ozzido\Container\Test\Fixture\FooWithMethods::withUnresorvableClassArgument()".');
         $this->container->call([new FooWithMethods(), 'withUnresorvableClassArgument']);
+    }
+
+    #[Test]
+    public function callThrowsNotFoundExceptionWhenGiveSpecifiesDependecyOnNonExistentClass(): void
+    {
+        $this->expectException(NotFoundException::class);
+        $this->expectExceptionMessage('Cannot resolve dependency "$foo" for "Ozzido\Container\Test\Fixture\FooWithMethods::withClassArgument()".');
+        /** @phpstan-ignore-next-line */
+        $this->container->call([new FooWithMethods(), 'withClassArgument'], ['foo' => new Give(NonExistent::class)]);
     }
 
     #[Test]
