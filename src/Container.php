@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Ozzido\Container;
 
+use Ozzido\Container\Binding\Capability\HasTagInterface;
 use Ozzido\Container\Binding\BindingInterface;
 use Ozzido\Container\Exception\ContainerException;
 use Ozzido\Container\Exception\NotFoundException;
@@ -116,6 +117,20 @@ class Container implements ContainerInterface
         }
 
         throw new NotFoundException(sprintf('Class "%s" does not exists.', $type));
+    }
+
+    /** @inheritdoc */
+    public function getTagged(string $tag): array
+    {
+        $instances = [];
+
+        foreach ($this->bindings->getBindings() as $binding) {
+            if ($binding instanceof HasTagInterface && $binding->hasTag($tag)) {
+                $instances[] = $binding->resolve($this);
+            }
+        }
+
+        return $instances;
     }
 
     /** @inheritdoc */

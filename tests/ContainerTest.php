@@ -115,6 +115,22 @@ class ContainerTest extends TestCase
     }
 
     #[Test]
+    public function getsTagged(): void
+    {
+        $this->container->bind(Foo::class)->toSelf()->withTag('tag1');
+        $this->container->bind(OtherFoo::class)->toSelf()->withTags(['tag1', 'tag2']);
+        $this->container->bind(Qux::class)->toSelf()->withTag('tag2');
+
+        $tagged = $this->container->getTagged('tag1');
+        $this->assertInstanceOf(Foo::class, $tagged[0]);
+        $this->assertInstanceOf(OtherFoo::class, $tagged[1]);
+
+        $tagged = $this->container->getTagged('tag2');
+        $this->assertInstanceOf(OtherFoo::class, $tagged[0]);
+        $this->assertInstanceOf(Qux::class, $tagged[1]);
+    }
+
+    #[Test]
     public function bindsAndGetsToAlias(): void
     {
         $this->container->bind(FooInterface::class)->to(Foo::class)->asSingleton();

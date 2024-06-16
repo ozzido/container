@@ -5,13 +5,16 @@ declare(strict_types=1);
 namespace Ozzido\Container\Binding;
 
 use Ozzido\Container\Binding\Capability\HasArgumentTrait;
+use Ozzido\Container\Binding\Capability\HasTagInterface;
+use Ozzido\Container\Binding\Capability\HasTagTrait;
 use Ozzido\Container\Binding\Capability\HasLifecycleInterface;
 use Ozzido\Container\Binding\Capability\HasLifecycleTrait;
 use Ozzido\Container\ContainerInterface;
 
-final class ConcreteBinding implements HasLifecycleInterface, BindingInterface
+final class ConcreteBinding implements HasTagInterface, HasLifecycleInterface, BindingInterface
 {
     use HasArgumentTrait;
+    use HasTagTrait;
     use HasLifecycleTrait;
 
     /** @var list<array{non-empty-string, array<non-empty-string, mixed>}> */

@@ -37,6 +37,17 @@ interface ContainerInterface extends BindingRegistryInterface, PsrContainerInter
     public function get(string $type);
 
     /**
+     * Returns an array of instances for the requested tag.
+     *
+     * At the moment, this method completely ignores contextual binding tags, perhaps
+     * this behavior will change in the future.
+     *
+     * @param non-empty-string $tag
+     * @return list<mixed>
+     */
+    public function getTagged(string $tag): array;
+
+    /**
      * Resolves the dependencies of the given callable and calls it.
      *
      * @template T of object

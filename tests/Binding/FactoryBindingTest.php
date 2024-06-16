@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Ozzido\Container\Test\Binding;
 
 use Ozzido\Container\Binding\Capability\HasArgumentTrait;
+use Ozzido\Container\Binding\Capability\HasTagTrait;
 use Ozzido\Container\Binding\Capability\HasLifecycleTrait;
 use Ozzido\Container\Binding\FactoryBinding;
 use Ozzido\Container\ContainerInterface;
@@ -21,6 +22,12 @@ class FactoryBindingTest extends TestCase
     public function usesHasArgumentTrait(): void
     {
         $this->assertContains(HasArgumentTrait::class, class_uses(FactoryBinding::class));
+    }
+
+    #[Test]
+    public function usesHasTagTrait(): void
+    {
+        $this->assertContains(HasTagTrait::class, class_uses(FactoryBinding::class));
     }
 
     #[Test]
