@@ -7,6 +7,7 @@ namespace Ozzido\Container;
 use Ozzido\Container\Exception\ContainerException;
 use Ozzido\Container\Exception\NotFoundException;
 use Psr\Container\ContainerInterface as PsrContainerInterface;
+use Closure;
 
 interface ContainerInterface extends BindingRegistryInterface, PsrContainerInterface
 {
@@ -48,6 +49,15 @@ interface ContainerInterface extends BindingRegistryInterface, PsrContainerInter
     public function getTagged(string $tag): array;
 
     /**
+     * Sets an instance interceptor closure.
+     *
+     * @template T of object
+     * @param class-string<T> $type
+     * @param Closure(T, static): (T|void) $interceptor
+     */
+    public function interceptor(string $type, Closure $interceptor): void;
+
+    /**
      * Resolves the dependencies of the given callable and calls it.
      *
      * @template T of object
@@ -57,7 +67,7 @@ interface ContainerInterface extends BindingRegistryInterface, PsrContainerInter
      * @throws ContainerException
      * @throws NotFoundException
      */
-    public function call(callable $callable, array $arguments = []): mixed;
+    public function call(callable $callable, array $arguments = [], bool $intercept = true): mixed;
 
     /**
      * Resolves the dependencies of the given concrete class and creates an instance of it.
@@ -70,5 +80,5 @@ interface ContainerInterface extends BindingRegistryInterface, PsrContainerInter
      * @throws ContainerException
      * @throws NotFoundException
      */
-    public function construct(string $concrete, array $arguments = []): object;
+    public function construct(string $concrete, array $arguments = [], bool $intercept = true): object;
 }

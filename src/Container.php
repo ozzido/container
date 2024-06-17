@@ -34,6 +34,8 @@ class Container implements ContainerInterface
     private readonly BindingRegistryInterface $bindings;
     /** @var array<class-string, BindingRegistryInterface> */
     private array $contextualBindings = [];
+    /** @phpstan-var array<class-string, list<Closure(object, static): (object|void)>> */
+    private array $interceptors = [];
     /** @var array<class-string, array<non-empty-string, ParameterCacheShape>> */
     private array $parameterCache = [];
     /** @var array<class-string, bool> */
@@ -134,7 +136,14 @@ class Container implements ContainerInterface
     }
 
     /** @inheritdoc */
-    public function call(callable $callable, array $arguments = []): mixed
+    public function interceptor(string $type, Closure $interceptor): void
+    {
+        /** @phpstan-ignore-next-line */
+        $this->interceptors[$type][] = $interceptor;
+    }
+
+    /** @inheritdoc */
+    public function call(callable $callable, array $arguments = [], bool $intercept = true): mixed
     {
         if ($parameters = $this->getCallableParameters($callable)) {
             $instance = $callable(...$this->resolveDependencies($parameters, $arguments));
@@ -142,11 +151,15 @@ class Container implements ContainerInterface
             $instance = $callable();
         }
 
-        return $instance;
+        if (!$intercept || !$this->interceptors || !is_object($instance)) {
+            return $instance;
+        }
+
+        return $this->intercept($instance);
     }
 
     /** @inheritdoc */
-    public function construct(string $concrete, array $arguments = []): object
+    public function construct(string $concrete, array $arguments = [], bool $intercept = true): object
     {
         if (isset($this->constructStack[$concrete])) {
             throw new ContainerException(sprintf('Cannot resolve circular dependency for "%s" class.', $concrete));
@@ -164,7 +177,11 @@ class Container implements ContainerInterface
             unset($this->constructStack[$concrete]);
         }
 
-        return $instance;
+        if (!$intercept || !$this->interceptors) {
+            return $instance;
+        }
+
+        return $this->intercept($instance);
     }
 
     /**
@@ -312,6 +329,29 @@ class Container implements ContainerInterface
         }
 
         $this->throwCannotResolveDependency($parameter, $e);
+    }
+
+    /**
+     * @template T of object
+     * @param T $instance
+     * @return T
+     */
+    private function intercept(object $instance): object
+    {
+        foreach ($this->interceptors as $type => $interceptors) {
+            if ($instance instanceof $type) {
+                foreach ($interceptors as $interceptor) {
+                    $decorated = $interceptor($instance, $this);
+
+                    if (is_object($decorated)) {
+                        /** @var T $instance */
+                        $instance = $decorated;
+                    }
+                }
+            }
+        }
+
+        return $instance;
     }
 
     private function throwCannotResolveDependency(ReflectionParameter $parameter, ?Exception $e = null): never

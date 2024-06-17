@@ -9,15 +9,18 @@ use Ozzido\Container\Exception\ContainerException;
 use Ozzido\Container\Exception\NotFoundException;
 use Ozzido\Container\BindingRegistrar;
 use Ozzido\Container\Container;
+use Ozzido\Container\ContainerAwareInterface;
 use Ozzido\Container\ContainerInterface;
 use Ozzido\Container\Give;
+use Ozzido\Container\Test\Fixture\Bar;
+use Ozzido\Container\Test\Fixture\Baz;
+use Ozzido\Container\Test\Fixture\DecoratedFoo;
 use Ozzido\Container\Test\Fixture\Foo;
 use Ozzido\Container\Test\Fixture\FooCircular;
+use Ozzido\Container\Test\Fixture\FooContainerAware;
 use Ozzido\Container\Test\Fixture\FooInterface;
 use Ozzido\Container\Test\Fixture\FooInvokable;
 use Ozzido\Container\Test\Fixture\FooWithMethods;
-use Ozzido\Container\Test\Fixture\Bar;
-use Ozzido\Container\Test\Fixture\Baz;
 use Ozzido\Container\Test\Fixture\OtherFoo;
 use Ozzido\Container\Test\Fixture\Qux;
 use PHPUnit\Framework\Attributes\Test;
@@ -182,6 +185,42 @@ class ContainerTest extends TestCase
         $this->container->for(Baz::class)->bind(FooInterface::class)->to(OtherFoo::class);
         $this->assertInstanceOf(Foo::class, $this->container->get(Bar::class)->getFoo());
         $this->assertInstanceOf(OtherFoo::class, $this->container->get(Baz::class)->getFoo());
+    }
+
+    #[Test]
+    public function interceptsAfterCall(): void
+    {
+        $this->container->interceptor(ContainerAwareInterface::class, function ($instance, $container) {
+            $instance->setContainer($container);
+        });
+
+        $this->assertSame($this->container, $this->container->call(fn () => new FooContainerAware())->getContainer());
+    }
+
+    #[Test]
+    public function interceptsAfterCostruct(): void
+    {
+        $this->container->interceptor(ContainerAwareInterface::class, function ($instance, $container) {
+            $instance->setContainer($container);
+        });
+
+        $this->assertSame($this->container, $this->container->construct(FooContainerAware::class)->getContainer());
+    }
+
+    #[Test]
+    public function interceptsAndOverridesAfterCostruct(): void
+    {
+        $this->container->interceptor(FooInterface::class, fn ($instance) => new DecoratedFoo($instance));
+        $decoratedFoo = $this->container->construct(Foo::class);
+        $this->assertInstanceOf(DecoratedFoo::class, $decoratedFoo);
+        $this->assertInstanceOf(Foo::class, $decoratedFoo->getDecorated());
+    }
+
+    #[Test]
+    public function interceptionAfterCostructCanBeDisabled(): void
+    {
+        $this->container->interceptor(FooInterface::class, fn ($instance) => new DecoratedFoo($instance));
+        $this->assertInstanceOf(Foo::class, $this->container->construct(Foo::class, intercept: false));
     }
 
     #[Test]
