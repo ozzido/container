@@ -8,6 +8,7 @@ use Ozzido\Container\Binding\Capability\HasArgumentTrait;
 use Ozzido\Container\Binding\Capability\HasTagTrait;
 use Ozzido\Container\Binding\Capability\HasLifecycleTrait;
 use Ozzido\Container\Binding\ConcreteBinding;
+use Ozzido\Container\Exception\MethodCallException;
 use Ozzido\Container\ContainerInterface;
 use Ozzido\Container\Test\Fixture\Foo;
 use Ozzido\Container\Test\Fixture\Qux;
@@ -89,7 +90,7 @@ class ConcreteBindingTest extends TestCase
     #[Test]
     public function resolvesSameInstanceInSingletonLifecycle(): void
     {
-        $container = $this->createContainerMockForLifecycleTests(1);
+        $container = $this->createContainerMockForLifecycleOrMethodCallTests(1);
         $binding = (new ConcreteBinding(Foo::class))->asSingleton();
         $this->assertSame($binding->resolve($container), $binding->resolve($container));
     }
@@ -97,7 +98,7 @@ class ConcreteBindingTest extends TestCase
     #[Test]
     public function resolvesSameInstanceInScopedLifecycle(): void
     {
-        $container = $this->createContainerMockForLifecycleTests(1);
+        $container = $this->createContainerMockForLifecycleOrMethodCallTests(1);
         $binding = (new ConcreteBinding(Foo::class))->asScoped();
         $this->assertSame($binding->resolve($container), $binding->resolve($container));
     }
@@ -105,12 +106,21 @@ class ConcreteBindingTest extends TestCase
     #[Test]
     public function resolvesDifferentInstanceInTransientLifecycle(): void
     {
-        $container = $this->createContainerMockForLifecycleTests(2);
+        $container = $this->createContainerMockForLifecycleOrMethodCallTests(2);
         $binding = new ConcreteBinding(Foo::class);
         $this->assertNotSame($binding->resolve($container), $binding->resolve($container));
     }
 
-    private function createContainerMockForLifecycleTests(int $exactly): ContainerInterface
+    #[Test]
+    public function resolveThrowsMethodCallExceptionOnNonExistentMethod(): void
+    {
+        $this->expectException(MethodCallException::class);
+        $this->expectExceptionMessage('Cannot execute "Ozzido\Container\Test\Fixture\Foo::nonExistentMethod()" method call. Method is does not exists or not invokable.');
+        $container = $this->createContainerMockForLifecycleOrMethodCallTests(1);
+        (new ConcreteBinding(Foo::class))->withMethodCall('nonExistentMethod')->resolve($container);
+    }
+
+    private function createContainerMockForLifecycleOrMethodCallTests(int $exactly): ContainerInterface
     {
         $container = $this->createMock(ContainerInterface::class);
         $container

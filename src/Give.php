@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace Ozzido\Container;
 
+use Ozzido\Container\Exception\CircularDependencyException;
+use Ozzido\Container\Exception\ConstructException;
+use Ozzido\Container\Exception\DependencyResolutionException;
+use Ozzido\Container\Exception\MethodCallException;
+use Ozzido\Container\Exception\NotFoundException;
 use Closure;
 
 /**
@@ -22,6 +27,12 @@ final readonly class Give
      * Resolves a dependency by retrieving it from a container or calling a factory.
      *
      * @return T|mixed
+     *
+     * @throws CircularDependencyException
+     * @throws ConstructException
+     * @throws DependencyResolutionException
+     * @throws MethodCallException
+     * @throws NotFoundException
      */
     public function resolve(ContainerInterface $container): mixed
     {

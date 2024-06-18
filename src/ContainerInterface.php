@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Ozzido\Container;
 
-use Ozzido\Container\Exception\ContainerException;
+use Ozzido\Container\Exception\CircularDependencyException;
+use Ozzido\Container\Exception\ConstructException;
+use Ozzido\Container\Exception\DependencyResolutionException;
+use Ozzido\Container\Exception\MethodCallException;
 use Ozzido\Container\Exception\NotFoundException;
 use Psr\Container\ContainerInterface as PsrContainerInterface;
 use Closure;
@@ -32,7 +35,10 @@ interface ContainerInterface extends BindingRegistryInterface, PsrContainerInter
      * @param non-empty-string|class-string $type
      * @return ($type is class-string<T> ? T : mixed)
      *
-     * @throws ContainerException
+     * @throws CircularDependencyException
+     * @throws ConstructException
+     * @throws DependencyResolutionException
+     * @throws MethodCallException
      * @throws NotFoundException
      */
     public function get(string $type);
@@ -45,6 +51,12 @@ interface ContainerInterface extends BindingRegistryInterface, PsrContainerInter
      *
      * @param non-empty-string $tag
      * @return list<mixed>
+     *
+     * @throws CircularDependencyException
+     * @throws ConstructException
+     * @throws DependencyResolutionException
+     * @throws MethodCallException
+     * @throws NotFoundException
      */
     public function getTagged(string $tag): array;
 
@@ -64,7 +76,10 @@ interface ContainerInterface extends BindingRegistryInterface, PsrContainerInter
      * @param array<non-empty-string, mixed> $arguments
      * @return ($callable is callable(): T ? T : mixed)
      *
-     * @throws ContainerException
+     * @throws CircularDependencyException
+     * @throws ConstructException
+     * @throws DependencyResolutionException
+     * @throws MethodCallException
      * @throws NotFoundException
      */
     public function call(callable $callable, array $arguments = [], bool $intercept = true): mixed;
@@ -77,8 +92,10 @@ interface ContainerInterface extends BindingRegistryInterface, PsrContainerInter
      * @param array<non-empty-string, mixed> $arguments
      * @return T
      *
-     * @throws ContainerException
-     * @throws NotFoundException
+     * @throws CircularDependencyException
+     * @throws ConstructException
+     * @throws DependencyResolutionException
+     * @throws MethodCallException
      */
     public function construct(string $concrete, array $arguments = [], bool $intercept = true): object;
 }

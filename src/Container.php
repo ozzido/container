@@ -6,7 +6,9 @@ namespace Ozzido\Container;
 
 use Ozzido\Container\Binding\Capability\HasTagInterface;
 use Ozzido\Container\Binding\BindingInterface;
-use Ozzido\Container\Exception\ContainerException;
+use Ozzido\Container\Exception\CircularDependencyException;
+use Ozzido\Container\Exception\ConstructException;
+use Ozzido\Container\Exception\DependencyResolutionException;
 use Ozzido\Container\Exception\NotFoundException;
 use ReflectionClass;
 use ReflectionMethod;
@@ -18,7 +20,6 @@ use Exception;
 use Closure;
 
 use function class_exists;
-use function sprintf;
 use function is_string;
 use function is_array;
 use function is_object;
@@ -118,7 +119,7 @@ class Container implements ContainerInterface
             return $this->construct($type);
         }
 
-        throw new NotFoundException(sprintf('Class "%s" does not exists.', $type));
+        throw NotFoundException::new($type);
     }
 
     /** @inheritdoc */
@@ -158,11 +159,11 @@ class Container implements ContainerInterface
         return $this->intercept($instance);
     }
 
-    /** @inheritdoc */
+    /** @inheritoc */
     public function construct(string $concrete, array $arguments = [], bool $intercept = true): object
     {
         if (isset($this->constructStack[$concrete])) {
-            throw new ContainerException(sprintf('Cannot resolve circular dependency for "%s" class.', $concrete));
+            throw CircularDependencyException::new($concrete, $this->constructStack);
         }
 
         $this->constructStack[$concrete] = true;
@@ -219,11 +220,11 @@ class Container implements ContainerInterface
             $class = new ReflectionClass($concrete);
             /** @phpstan-ignore-next-line */
         } catch (ReflectionException $e) {
-            throw new ContainerException(sprintf('Cannot reflect on "%s" class.', $concrete), 0, $e);
+            throw ConstructException::newCannotReflect($concrete, $e);
         }
 
         if (!$class->isInstantiable()) {
-            throw new ContainerException(sprintf('Cannot instantiate not instantiable class "%s".', $concrete));
+            throw ConstructException::newCannotInstantiate($concrete);
         }
 
         $parameters = $class->getConstructor()?->getParameters() ?? [];
@@ -275,7 +276,7 @@ class Container implements ContainerInterface
                     try {
                         $dependency = $dependency->resolve($this);
                     } catch (NotFoundException $e) {
-                        $this->throwCannotResolveDependency($parameter, $e);
+                        throw DependencyResolutionException::new($parameter, $e);
                     }
                 }
             } elseif ($parameterType) {
@@ -328,7 +329,7 @@ class Container implements ContainerInterface
             return [];
         }
 
-        $this->throwCannotResolveDependency($parameter, $e);
+        throw DependencyResolutionException::new($parameter, $e);
     }
 
     /**
@@ -352,17 +353,5 @@ class Container implements ContainerInterface
         }
 
         return $instance;
-    }
-
-    private function throwCannotResolveDependency(ReflectionParameter $parameter, ?Exception $e = null): never
-    {
-        $declaringClassName = $parameter->getDeclaringClass()?->getName();
-
-        throw new NotFoundException(sprintf(
-            'Cannot resolve dependency "$%s" for "%s%s()".',
-            $parameter->getName(),
-            $declaringClassName ? $declaringClassName . '::' : '',
-            $parameter->getDeclaringFunction()->getName()
-        ), 0, $e);
     }
 }

@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Ozzido\Container\Test;
 
 use Ozzido\Container\Binding\ConcreteBinding;
-use Ozzido\Container\Exception\ContainerException;
+use Ozzido\Container\Exception\CircularDependencyException;
+use Ozzido\Container\Exception\ConstructException;
+use Ozzido\Container\Exception\DependencyResolutionException;
 use Ozzido\Container\Exception\NotFoundException;
 use Ozzido\Container\BindingRegistrar;
 use Ozzido\Container\Container;
@@ -290,42 +292,42 @@ class ContainerTest extends TestCase
     }
 
     #[Test]
-    public function constructThrowsContainerExceptionOnNonExistentClass(): void
+    public function constructThrowsConstructExceptionOnNonExistentClass(): void
     {
-        $this->expectException(ContainerException::class);
+        $this->expectException(ConstructException::class);
         $this->expectExceptionMessage('Cannot reflect on "Ozzido\Container\Test\NonExistent" class.');
         /** @phpstan-ignore-next-line */
         $this->container->construct(NonExistent::class);
     }
 
     #[Test]
-    public function constructThrowsContainerExceptionOnNotInstantiableClass(): void
+    public function constructThrowsConstructExceptionOnNotInstantiableClass(): void
     {
-        $this->expectException(ContainerException::class);
-        $this->expectExceptionMessage('Cannot instantiate not instantiable class "Ozzido\Container\Test\Fixture\FooInterface".');
+        $this->expectException(ConstructException::class);
+        $this->expectExceptionMessage('Cannot instantiate not instantiable "Ozzido\Container\Test\Fixture\FooInterface" class.');
         $this->container->construct(FooInterface::class);
     }
 
     #[Test]
-    public function constructThrowsContainerExceptionnOnCircularDependency(): void
+    public function constructThrowsCircularDependencyExceptionOnCircularDependency(): void
     {
-        $this->expectException(ContainerException::class);
-        $this->expectExceptionMessage('Cannot resolve circular dependency for "Ozzido\Container\Test\Fixture\FooCircular" class.');
+        $this->expectException(CircularDependencyException::class);
+        $this->expectExceptionMessage('Cannot resolve circular dependency for "Ozzido\Container\Test\Fixture\FooCircular" class. Construct stack: "Ozzido\Container\Test\Fixture\FooCircular" -> "Ozzido\Container\Test\Fixture\FooCircular".');
         $this->container->construct(FooCircular::class);
     }
 
     #[Test]
-    public function callThrowsNotFoundExceptionOnUnresorvableDependency(): void
+    public function callThrowsDependencyResolutionExceptionOnUnresorvableDependency(): void
     {
-        $this->expectException(NotFoundException::class);
+        $this->expectException(DependencyResolutionException::class);
         $this->expectExceptionMessage('Cannot resolve dependency "$nonExistent" for "Ozzido\Container\Test\Fixture\FooWithMethods::withUnresorvableClassArgument()".');
         $this->container->call([new FooWithMethods(), 'withUnresorvableClassArgument']);
     }
 
     #[Test]
-    public function callThrowsNotFoundExceptionWhenGiveSpecifiesDependecyOnNonExistentClass(): void
+    public function callThrowsDependencyResolutionExceptionWhenGiveSpecifiesDependecyOnNonExistentClass(): void
     {
-        $this->expectException(NotFoundException::class);
+        $this->expectException(DependencyResolutionException::class);
         $this->expectExceptionMessage('Cannot resolve dependency "$foo" for "Ozzido\Container\Test\Fixture\FooWithMethods::withClassArgument()".');
         /** @phpstan-ignore-next-line */
         $this->container->call([new FooWithMethods(), 'withClassArgument'], ['foo' => new Give(NonExistent::class)]);
@@ -335,7 +337,7 @@ class ContainerTest extends TestCase
     public function getThrowsNotFoundExceptionOnNonExistentClass(): void
     {
         $this->expectException(NotFoundException::class);
-        $this->expectExceptionMessage('Class "Ozzido\Container\Test\NonExistent" does not exists.');
+        $this->expectExceptionMessage('Type "Ozzido\Container\Test\NonExistent" is not found in the container.');
         /** @phpstan-ignore-next-line */
         $this->container->get(NonExistent::class);
     }
@@ -344,7 +346,7 @@ class ContainerTest extends TestCase
     public function getThrowsNotFoundExceptionWhenBindsToNonExistentAlias(): void
     {
         $this->expectException(NotFoundException::class);
-        $this->expectExceptionMessage('Class "Ozzido\Container\Test\Fixture\FooInterface" does not exists.');
+        $this->expectExceptionMessage('Type "Ozzido\Container\Test\Fixture\FooInterface" is not found in the container.');
         $this->container->bind(Foo::class)->toAlias(FooInterface::class);
         $this->container->get(Foo::class);
     }

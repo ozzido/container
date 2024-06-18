@@ -9,7 +9,11 @@ use Ozzido\Container\Binding\Capability\HasTagInterface;
 use Ozzido\Container\Binding\Capability\HasTagTrait;
 use Ozzido\Container\Binding\Capability\HasLifecycleInterface;
 use Ozzido\Container\Binding\Capability\HasLifecycleTrait;
+use Ozzido\Container\Exception\MethodCallException;
 use Ozzido\Container\ContainerInterface;
+
+use function method_exists;
+use function is_callable;
 
 final class ConcreteBinding implements HasTagInterface, HasLifecycleInterface, BindingInterface
 {
@@ -61,8 +65,13 @@ final class ConcreteBinding implements HasTagInterface, HasLifecycleInterface, B
             $this->instance = $container->construct($this->concrete, $this->arguments);
 
             foreach ($this->methodCalls as [$method, $arguments]) {
-                /** @phpstan-ignore-next-line */
-                $container->call([$this->instance, $method], $arguments, false);
+                $callable = [$this->instance, $method];
+
+                if (!method_exists($this->instance, $method) || !is_callable($callable)) {
+                    throw MethodCallException::new($this->instance, $method);
+                }
+
+                $container->call($callable, $arguments, false);
             }
 
             $this->resolved = true;
