@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Ozzido\Container\Binding\Capability;
 
+use Ozzido\Container\Lazy;
+use Closure;
+
 trait HasArgumentTrait
 {
     /** @var array<non-empty-string, mixed> */
@@ -19,6 +22,17 @@ trait HasArgumentTrait
         $this->arguments[$argument] = $value;
 
         return $this;
+    }
+
+    /**
+     * Defines a named constructor argument with lazy resolution.
+     *
+     * @param non-empty-string $argument
+     * @param non-empty-string|class-string|Closure $typeOrFactory
+     */
+    public function withLazyArgument(string $argument, string|Closure $typeOrFactory): static
+    {
+        return $this->withArgument($argument, new Lazy($typeOrFactory));
     }
 
     /**
