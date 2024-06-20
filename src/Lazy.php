@@ -14,7 +14,7 @@ use Closure;
 /**
  * @template T of object
  */
-final readonly class Give
+final readonly class Lazy
 {
     /**
      * @param non-empty-string|class-string<T>|Closure(ContainerInterface): T $typeOrFactory

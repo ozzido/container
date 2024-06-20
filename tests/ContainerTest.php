@@ -13,7 +13,7 @@ use Ozzido\Container\BindingRegistrar;
 use Ozzido\Container\Container;
 use Ozzido\Container\ContainerAwareInterface;
 use Ozzido\Container\ContainerInterface;
-use Ozzido\Container\Give;
+use Ozzido\Container\Lazy;
 use Ozzido\Container\Test\Fixture\Bar;
 use Ozzido\Container\Test\Fixture\Baz;
 use Ozzido\Container\Test\Fixture\DecoratedFoo;
@@ -268,9 +268,9 @@ class ContainerTest extends TestCase
     }
 
     #[Test]
-    public function callsWithDependencyResolvingUsingGive(): void
+    public function callsWithDependencyResolvingUsingLazy(): void
     {
-        $this->assertInstanceOf(Foo::class, $this->container->call([new FooWithMethods(), 'withClassArgument'], ['foo' => new Give(Foo::class)]));
+        $this->assertInstanceOf(Foo::class, $this->container->call([new FooWithMethods(), 'withClassArgument'], ['foo' => new Lazy(Foo::class)]));
     }
 
     #[Test]
@@ -325,12 +325,12 @@ class ContainerTest extends TestCase
     }
 
     #[Test]
-    public function callThrowsDependencyResolutionExceptionWhenGiveSpecifiesDependecyOnNonExistentClass(): void
+    public function callThrowsDependencyResolutionExceptionWhenLazySpecifiesDependecyOnNonExistentClass(): void
     {
         $this->expectException(DependencyResolutionException::class);
         $this->expectExceptionMessage('Cannot resolve dependency "$foo" for "Ozzido\Container\Test\Fixture\FooWithMethods::withClassArgument()".');
         /** @phpstan-ignore-next-line */
-        $this->container->call([new FooWithMethods(), 'withClassArgument'], ['foo' => new Give(NonExistent::class)]);
+        $this->container->call([new FooWithMethods(), 'withClassArgument'], ['foo' => new Lazy(NonExistent::class)]);
     }
 
     #[Test]

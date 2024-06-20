@@ -272,7 +272,7 @@ class Container implements ContainerInterface
             if (array_key_exists($parameterName, $overrides)) {
                 $dependency = $overrides[$parameterName];
 
-                if ($dependency instanceof Give) {
+                if ($dependency instanceof Lazy) {
                     try {
                         $dependency = $dependency->resolve($this);
                     } catch (NotFoundException $e) {

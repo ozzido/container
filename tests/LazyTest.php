@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Ozzido\Container\Test;
 
 use Ozzido\Container\ContainerInterface;
-use Ozzido\Container\Give;
+use Ozzido\Container\Lazy;
 use Ozzido\Container\Test\Fixture\Foo;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
-class GiveTest extends TestCase
+class LazyTest extends TestCase
 {
     #[Test]
     public function takesFromContainer(): void
@@ -23,13 +23,13 @@ class GiveTest extends TestCase
                 $this->assertSame(Foo::class, $type);
             });
 
-        (new Give(Foo::class))->resolve($container);
+        (new Lazy(Foo::class))->resolve($container);
     }
 
     #[Test]
     public function takesUsingClosure(): void
     {
         $container = $this->createMock(ContainerInterface::class);
-        $this->assertInstanceOf(Foo::class, (new Give(fn () => new Foo()))->resolve($container));
+        $this->assertInstanceOf(Foo::class, (new Lazy(fn () => new Foo()))->resolve($container));
     }
 }
